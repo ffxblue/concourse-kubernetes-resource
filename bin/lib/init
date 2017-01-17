@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+require 'json'
+
+require 'pry'
+
+image = ARGV[0]
+input = ARGV[1]
+
+config = YAML.load(input)
+
+applied = config['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration'].to_s
+
+init = JSON.parse(applied)
+
+containers = init['spec']['template']['metadata']['annotations']['pod.beta.kubernetes.io/init-containers']
+
+images = JSON.parse(containers)
+images[0]['image'] = image
+containers = images.to_json
+init['spec']['template']['metadata']['annotations']['pod.beta.kubernetes.io/init-containers'] = containers
+applied = init.to_json
+config['metadata']['annotations']['kubectl.kubernetes.io/last-applied-configuration'] = applied
+
+
+File.open('app.yml','w') do |h| 
+   h.write config.to_yaml
+end
+
