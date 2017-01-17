@@ -13,8 +13,11 @@ deploy() {
     [ -n "$DEPLOYMENT" ] || exit 1
     [ -n "$IMAGE" ] || exit 1
     [ -n "$CONTAINER" ] || exit 1
-
-    $KUBECTL set image deployment/$DEPLOYMENT $CONTAINER=$IMAGE
+    INPUT=$($KUBECTL get deploy $1 -0 yaml)
+    lib/init $3 $INPUT
+    $KUBECTL apply -f lib/app.yml
+    rm -f lib/app.yml
+    #$KUBECTL set image deployment/$DEPLOYMENT $CONTAINER=$IMAGE
 }
 
 rollingupdate() {
